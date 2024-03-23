@@ -1,0 +1,6 @@
+node_modules
+prisma/migrations
+package.json
+yarn.lock
+.env
+.gitignore
