@@ -1,18 +1,17 @@
-import { NextFunction, Response } from 'express'
-import { changeOrderStatus, updateData, placeOrder, cancelOrder, getOrderByUser } from '../services/order.service'
-import { IRequest } from '../libs/types'
-import { CustomError } from '../utils/customError'
-import { db } from '../services/db'
+import { NextFunction, Response } from "express"
+import { changeOrderStatus, updateData, placeOrder, cancelOrder, getOrderByUser } from "../services/order.service"
+import { IRequest } from "../libs/types"
+import { CustomError } from "../utils/customError"
+import { db } from "../services/db"
 
 // Controller for creating an order
 export const createOrderController = async (req: IRequest, res: Response, next: NextFunction) => {
   try {
     const { items } = req.body
     const userId = req.user?.id
-
     // Check if user is authorized
     if (!userId) {
-      throw new CustomError('User is unauthorized', 401)
+      throw new CustomError("User is unauthorized", 401)
     }
 
     // Getting Prices from the server
@@ -24,10 +23,10 @@ export const createOrderController = async (req: IRequest, res: Response, next: 
     // Handle order placement failure
     if (!result) {
       res.status(500)
-      throw new Error('Cannot place your order')
+      throw new Error("Cannot place your order")
     }
     res.status(201).json({
-      message: 'Order placed',
+      message: "Order placed",
       result,
     })
   } catch (error) {
@@ -43,7 +42,7 @@ export const orderStatusController = async (req: IRequest, res: Response, next: 
 
     // Respond with success message
     res.status(200).json({
-      message: 'Order status successfully changed',
+      message: "Order status successfully changed",
     })
   } catch (error) {
     throw error
@@ -57,13 +56,13 @@ export const deleteOrderController = async (req: IRequest, res: Response, next: 
 export const getAllOrders = async (req: IRequest, res: Response, next: NextFunction) => {
   const { role, id } = req.user!
   let orders
-  if (role == 'admin') {
+  if (role == "admin") {
     orders = await db.order.findMany({
       include: {
         items: true,
       },
     })
-  } else if (role == 'seller') {
+  } else if (role == "seller") {
     orders = await db.orderItem.findMany({
       where: {
         product: {
@@ -71,14 +70,14 @@ export const getAllOrders = async (req: IRequest, res: Response, next: NextFunct
         },
       },
     })
-  } else if (role == 'user') {
+  } else if (role == "user") {
     orders = await db.order.findMany({
       where: { isDeleted: false, userId: id },
     })
   }
 
   if (orders == undefined) {
-    throw new CustomError('Error getting orders', 500)
+    throw new CustomError("Error getting orders", 500)
   }
   console.log(orders)
   res.status(200).json(orders)

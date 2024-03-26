@@ -1,8 +1,8 @@
-import { NextFunction, Response } from 'express'
-import { IRequest } from '../libs/types'
-import { Product } from '@prisma/client'
-import { ZodError } from 'zod'
-import { CustomError } from '../utils/customError'
+import { NextFunction, Response } from "express"
+import { IRequest } from "../libs/types"
+import { Product } from "@prisma/client"
+import { ZodError } from "zod"
+import { CustomError } from "../utils/customError"
 import {
   createProduct,
   deleteProduct,
@@ -12,17 +12,17 @@ import {
   getProductsbySearch,
   productExisting,
   updateProduct,
-} from '../services/product.service'
-import { db } from '../services/db'
-import multer from 'multer'
+} from "../services/product.service"
+import { db } from "../services/db"
+import multer from "multer"
 
-export const upload = multer({ dest: './public/uploads' })
+export const upload = multer({ dest: "./public/uploads" })
 
 export const createProductController = async (req: IRequest, res: Response, next: NextFunction) => {
   try {
     const sellerId = req.user?.id
-    let data: Product = req.body
-    if (sellerId) data = { ...data, sellerId: sellerId }
+    let data = req.body
+    if (sellerId) data = { ...data, sellerId: sellerId, stock: parseInt(data.stock) }
     console.log(req.file)
     if (req.file) {
       const imageUrl = `http://localhost:5002/uploads/${req.file.filename}`
@@ -50,11 +50,11 @@ export const deleteProductController = async (req: IRequest, res: Response, next
     const sellerId = req.user?.id
     if (!sellerId) {
       res.status(401)
-      throw new Error('Seller is not authorized')
+      throw new Error("Seller is not authorized")
     }
 
     if (!(await productExisting(productId, sellerId))) {
-      throw new CustomError('Product doesnt exist', 404)
+      throw new CustomError("Product doesnt exist", 404)
     }
     const { name, id, imageUrl } = await deleteProduct(productId, sellerId)
     res.status(200).json({
@@ -78,18 +78,17 @@ export const updateProductController = async (req: IRequest, res: Response, next
 
     if (!sellerId) {
       res.status(401)
-      throw new Error('Seller is not authorized')
+      throw new Error("Seller is not authorized")
     }
 
     if (!(await productExisting(productId, sellerId))) {
-      throw new CustomError('Product doesnt exist', 404)
+      throw new CustomError("Product doesnt exist", 404)
     }
 
     const { name, id, imageUrl } = await updateProduct(productId, sellerId, data)
     res.status(200).json({
-      id,
-      name,
-      imageUrl,
+      status: "success",
+      message: "Order updated successfully",
     })
   } catch (error) {
     next(error)
@@ -104,12 +103,12 @@ export const getProductController = async (req: IRequest, res: Response, next: N
     // if () throw new CustomError('unauthorized user', 400)
     let resData
     switch (userRole) {
-      case 'admin':
-      case 'user':
+      case "admin":
+      case "user":
         resData = await getProducts()
         break
 
-      case 'seller':
+      case "seller":
         resData = await getProductsBySeller(id)
         break
 
@@ -137,7 +136,7 @@ export const getProductBySearchController = async (req: IRequest, res: Response,
 
   if (!products) {
     res.status(200).json({
-      message: 'no results found',
+      message: "no results found",
     })
     return
   }
